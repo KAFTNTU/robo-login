@@ -977,37 +977,38 @@ select, option{
 </head>
 <body class="h-screen w-screen flex flex-col">
 
-    <header class="h-16 glass-header flex items-center justify-between px-4 z-50 absolute top-0 w-full">
+    <header class="h-16 glass-header flex items-center justify-between px-3 z-50 absolute top-0 w-full">
+        <!-- Ліва частина: крапка + навігація -->
         <div class="flex items-center gap-2">
             <span id="statusDot" class="status-dot"></span>
             <span id="statusText" class="hidden"></span>
+            <nav id="rcTopNav" class="flex items-center gap-1 bg-slate-800/50 p-1 rounded-xl border border-slate-700/50">
+                <button onclick="switchView('view-joystick', this)" class="nav-btn active" title="Пульт">
+                    <i class="fa-solid fa-gamepad text-lg"></i>
+                </button>
+                <button onclick="switchView('view-builder', this)" class="nav-btn" title="Scratch">
+                    <i class="fa-solid fa-puzzle-piece text-lg"></i>
+                </button>
+                <div class="w-px h-6 bg-slate-700 mx-1"></div>
+                <button onclick="openPassModal()" class="nav-btn text-slate-400 hover:text-slate-300" title="Пароль">
+                    <i class="fa-solid fa-lock text-lg"></i>
+                </button>
+                <button id="btnLog" onclick="toggleLogModal()" class="nav-btn text-slate-400 hover:text-slate-300 relative" title="Лог (Затисни 3с)">
+                    <i class="fa-solid fa-book text-lg"></i>
+                </button>
+            </nav>
         </div>
-        
-        <nav id="rcTopNav" class="flex items-center gap-1 bg-slate-800/50 p-1 rounded-xl border border-slate-700/50">
-            <button onclick="switchView('view-joystick', this)" class="nav-btn active" title="Пульт">
-                <i class="fa-solid fa-gamepad text-lg"></i>
-            </button>
-            <button onclick="switchView('view-builder', this)" class="nav-btn" title="Scratch">
-                <i class="fa-solid fa-puzzle-piece text-lg"></i>
-            </button>
-            <div class="w-px h-6 bg-slate-700 mx-1"></div>
-            <button onclick="openPassModal()" class="nav-btn text-slate-400 hover:text-slate-300" title="Пароль">
-                <i class="fa-solid fa-lock text-lg"></i>
-            </button>
-            <button id="btnLog" onclick="toggleLogModal()" class="nav-btn text-slate-400 hover:text-slate-300 relative" title="Лог (Затисни 3с)">
-                <i class="fa-solid fa-book text-lg"></i>
-            </button>
-        </nav>
-        
+
+        <!-- Права частина: кнопка входу + bluetooth -->
         <div class="flex items-center gap-2">
             <!-- Кнопка авторизації -->
-            <button id="btnAuth" onclick="openAuthModal()" class="w-10 h-10 rounded-full bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white flex items-center justify-center transition-all border border-slate-600/50" title="Увійти">
-                <i class="fa-solid fa-user text-base"></i>
+            <button id="btnAuth" onclick="openAuthModal()" class="w-9 h-9 rounded-full bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white flex items-center justify-center transition-all border border-slate-600/50" title="Увійти">
+                <i class="fa-solid fa-user text-sm"></i>
             </button>
             <!-- Аватар після входу (прихований) -->
             <div id="userAvatar" class="hidden relative cursor-pointer" onclick="toggleUserMenu()">
-                <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm border-2 border-blue-400/50 select-none" id="avatarInitials"></div>
-                <div id="userMenu" class="hidden absolute right-0 top-12 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-3 min-w-48 z-50">
+                <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs border-2 border-blue-400/50 select-none" id="avatarInitials"></div>
+                <div id="userMenu" class="hidden absolute right-0 top-11 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-3 min-w-48 z-50">
                     <p class="text-white font-semibold text-sm" id="menuUsername"></p>
                     <p class="text-slate-400 text-xs mb-3" id="menuEmail"></p>
                     <button onclick="logout()" class="w-full text-left text-red-400 hover:text-red-300 text-sm py-1 px-2 rounded hover:bg-slate-700 transition-colors">
@@ -1015,8 +1016,8 @@ select, option{
                     </button>
                 </div>
             </div>
-            <button id="btConnect" class="w-10 h-10 rounded-full bg-blue-600 active:bg-blue-700 hover:bg-blue-500 text-white shadow-lg flex items-center justify-center transition-all border border-blue-400/30">
-                <i class="fa-brands fa-bluetooth-b text-lg"></i>
+            <button id="btConnect" class="w-9 h-9 rounded-full bg-blue-600 active:bg-blue-700 hover:bg-blue-500 text-white shadow-lg flex items-center justify-center transition-all border border-blue-400/30">
+                <i class="fa-brands fa-bluetooth-b text-base"></i>
             </button>
         </div>
     </header>
@@ -2726,6 +2727,54 @@ document.addEventListener('keydown', function(e) {
 </script>
 
 
+
+<script>
+// ─── Session Tracking ────────────────────────────────────────────────────────
+let _sessionId = null;
+let _pingInterval = null;
+
+async function startSession() {
+  const token = getAuthToken();
+  if (!token) return;
+  try {
+    const res = await fetch(AUTH_SERVER + "/auth/session/start", {
+      method: "POST", headers: { Authorization: "Bearer " + token }
+    });
+    const data = await res.json();
+    _sessionId = data.session_id;
+    _pingInterval = setInterval(pingSession, 30000);
+  } catch(e) {}
+}
+
+async function pingSession() {
+  if (!_sessionId) return;
+  try {
+    await fetch(AUTH_SERVER + "/auth/session/ping", {
+      method: "POST", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ session_id: _sessionId })
+    });
+  } catch(e) {}
+}
+
+async function endSession() {
+  if (!_sessionId) return;
+  clearInterval(_pingInterval);
+  try {
+    navigator.sendBeacon(AUTH_SERVER + "/auth/session/end",
+      JSON.stringify({ session_id: _sessionId }));
+  } catch(e) {}
+  _sessionId = null;
+}
+
+window.addEventListener("beforeunload", endSession);
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) pingSession();
+});
+
+// Хук: запускати сесію після входу
+const _origSetLoggedIn = typeof setLoggedIn !== "undefined" ? setLoggedIn : null;
+</script>
+
 <!-- ====================================================
      AUTH MODAL — Вхід / Реєстрація
 ===================================================== -->
@@ -2852,6 +2901,7 @@ let authTab = "login";
             if (res.ok) {
                 const data = await res.json();
                 setLoggedIn(data.user);
+                startSession();
                 return;
             }
         } catch(e) {}
@@ -2917,6 +2967,7 @@ function setAuthLoading(loading) {
 
 // ─── Після входу ────────────────────────────────────────
 function setLoggedIn(user) {
+    startSession();
     currentUser = user;
     // Сховати кнопку "Увійти"
     document.getElementById("btnAuth").classList.add("hidden");
@@ -2932,6 +2983,7 @@ function setLoggedIn(user) {
 }
 
 function logout() {
+    endSession();
     currentUser = null;
     localStorage.removeItem(AUTH_KEY);
     document.getElementById("btnAuth").classList.remove("hidden");
@@ -2984,6 +3036,7 @@ async function submitAuth() {
 
         localStorage.setItem(AUTH_KEY, data.token);
         setLoggedIn(data.user);
+        startSession();
 
     } catch(e) {
         showAuthError("Помилка з'єднання з сервером");
@@ -3013,6 +3066,67 @@ function getAuthToken() {
 function getAuthUser() {
     return currentUser;
 }
+</script>
+
+<script>
+// ── Session Tracking ─────────────────────────────────────
+let _sessionId = null;
+let _heartbeatInterval = null;
+
+async function startSession() {
+    const token = getAuthToken();
+    if (!token) return;
+    try {
+        const res = await fetch(`${AUTH_SERVER}/auth/session/start`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+            const data = await res.json();
+            _sessionId = data.session_id;
+            // Heartbeat кожні 30 секунд
+            if (_heartbeatInterval) clearInterval(_heartbeatInterval);
+            _heartbeatInterval = setInterval(sendHeartbeat, 30000);
+        }
+    } catch(e) {}
+}
+
+async function sendHeartbeat() {
+    if (!_sessionId) return;
+    const token = getAuthToken();
+    if (!token) return;
+    try {
+        await fetch(`${AUTH_SERVER}/auth/session/heartbeat`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: _sessionId })
+        });
+    } catch(e) {}
+}
+
+async function endSession() {
+    if (!_sessionId) return;
+    const token = getAuthToken();
+    if (!token) return;
+    if (_heartbeatInterval) clearInterval(_heartbeatInterval);
+    // sendBeacon для надійної відправки при закритті вкладки
+    const payload = JSON.stringify({ session_id: _sessionId });
+    navigator.sendBeacon
+        ? navigator.sendBeacon(`${AUTH_SERVER}/auth/session/end`,
+            new Blob([payload], { type: "application/json" }))
+        : fetch(`${AUTH_SERVER}/auth/session/end`, {
+            method: "POST", keepalive: true,
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            body: payload
+          }).catch(()=>{});
+    _sessionId = null;
+}
+
+// Завершити сесію при закритті/переході
+window.addEventListener("beforeunload", endSession);
+document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") sendHeartbeat();
+});
 </script>
 </body>
 </html>
