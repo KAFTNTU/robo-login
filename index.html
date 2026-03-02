@@ -812,10 +812,20 @@ body{
   width:auto !important;
   margin:14px 0 0 0 !important;
 }
+/* ── ЗМІННА ДЛЯ МОБІЛЬНОГО: міняй --mobile-nav-x щоб зсунути навігацію ── */
+:root { --mobile-nav-x: 40%; }
+
 #rcTopNav{
   position:absolute !important;
-  left:33% !important;
+  left:48% !important;
   transform: translateX(-50%) !important;
+}
+
+/* Тільки мобільний — зсув навігації */
+@media (hover: none) and (pointer: coarse) {
+  #rcTopNav{
+    left: var(--mobile-nav-x) !important;
+  }
 }
 #btConnect{
   position:absolute !important;
