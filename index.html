@@ -812,8 +812,16 @@ body{
   width:auto !important;
   margin:14px 0 0 0 !important;
 }
-/* ── ЗМІННА ДЛЯ МОБІЛЬНОГО: міняй --mobile-nav-x щоб зсунути навігацію ── */
-:root { --mobile-nav-x: 40%; }
+/* ════════════════════════════════════════════════
+   📱 МОБІЛЬНЕ РОЗТАШУВАННЯ — міняй тут пікселі
+   ════════════════════════════════════════════════
+   --nav-offset-x   : зсув 4 іконок (gamepad/puzzle/lock/log) від лівого краю
+   --auth-offset-x  : зсув іконки логіну від правого краю
+   ════════════════════════════════════════════════ */
+:root {
+  --nav-offset-x:  120px;   /* ← міняй: зсув 4 іконок від лівого краю */
+  --auth-offset-x: 55px;    /* ← міняй: зсув іконки логіну від правого краю */
+}
 
 #rcTopNav{
   position:absolute !important;
@@ -821,10 +829,18 @@ body{
   transform: translateX(-50%) !important;
 }
 
-/* Тільки мобільний — зсув навігації */
+/* Тільки мобільний */
 @media (hover: none) and (pointer: coarse) {
   #rcTopNav{
-    left: var(--mobile-nav-x) !important;
+    left: var(--nav-offset-x) !important;
+    transform: none !important;
+  }
+  #btnAuth,
+  #userAvatar {
+    position: absolute !important;
+    right: var(--auth-offset-x) !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
   }
 }
 #btConnect{
