@@ -1,0 +1,24 @@
+name = "rc-sumo-server"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+[durable_objects]
+bindings = [
+  { name = "ROOMS", class_name = "RoomDO" }
+]
+
+# D1 база даних для користувачів (безкоштовно!)
+[[d1_databases]]
+binding = "DB"
+database_name = "roboscratch-users"
+database_id = "ЗАМІНИТИ_НА_СВІЙ_ID"
+
+# Секрети встановити через: npx wrangler secret put JWT_SECRET
+# та: npx wrangler secret put GOOGLE_CLIENT_SECRET
+[vars]
+GOOGLE_CLIENT_ID = "ЗАМІНИТИ_НА_СВІЙ_GOOGLE_CLIENT_ID"
+APP_URL = "https://rc-sumo-server.kafrdrapv1.workers.dev"
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["RoomDO"]
