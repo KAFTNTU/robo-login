@@ -11,7 +11,7 @@ bindings = [
 [[d1_databases]]
 binding = "DB"
 database_name = "roboscratch-users"
-database_id = "ЗАМІНИТИ_НА_СВІЙ_ID"
+database_id = "6900c566-be8e-4940-8100-fe11ac64b901"
 
 # Секрети встановити через: npx wrangler secret put JWT_SECRET
 # та: npx wrangler secret put GOOGLE_CLIENT_SECRET
