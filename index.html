@@ -566,6 +566,7 @@ main.flex-1.relative{
   gap: 5px !important;
 }
 
+
 .nav-btn{
   width: var(--nav-btn-size);
   height: var(--nav-btn-size);
@@ -813,7 +814,7 @@ body{
 }
 #rcTopNav{
   position:absolute !important;
-  left:48% !important;
+  left:33% !important;
   transform: translateX(-50%) !important;
 }
 #btConnect{
@@ -1000,7 +1001,7 @@ select, option{
         </div>
 
         <!-- Права частина: кнопка входу + bluetooth -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-4">
             <!-- Кнопка авторизації -->
             <button id="btnAuth" onclick="openAuthModal()" class="w-9 h-9 rounded-full bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white flex items-center justify-center transition-all border border-slate-600/50" title="Увійти">
                 <i class="fa-solid fa-user text-sm"></i>
@@ -1816,6 +1817,11 @@ const SLIP_END = 0xC0;
         }
 
         function switchView(viewId, btnElement) {
+            // 🔒 Scratch доступний тільки після авторизації
+            if (viewId === 'view-builder' && !currentUser) {
+                openAuthModal();
+                return;
+            }
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             if(btnElement) btnElement.classList.add('active');
             
