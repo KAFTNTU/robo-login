@@ -28,6 +28,18 @@ export default {
   },
 };
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+async function getUser(req: Request, env: Env): Promise<any | null> {
+  const token = req.headers.get("Authorization")?.replace("Bearer ", "");
+  if (!token) return null;
+  const payload = await verifyJwt(token, env.JWT_SECRET);
+  if (!payload) return null;
+  return payload;
+}
+
+// ── Auth handlers ─────────────────────────────────────────────────────────────
+
 async function handleAuth(req: Request, env: Env, url: URL): Promise<Response> {
   const origin = req.headers.get("Origin") || "*";
 
@@ -70,7 +82,7 @@ async function handleAuth(req: Request, env: Env, url: URL): Promise<Response> {
     return json({ token, user: { id: user.id, email: user.email, username: user.username } }, 200, origin);
   }
 
-  // GET /auth/google — редирект на Google
+  // GET /auth/google
   if (url.pathname === "/auth/google" && req.method === "GET") {
     const params = new URLSearchParams({
       client_id: env.GOOGLE_CLIENT_ID,
@@ -122,7 +134,6 @@ async function handleAuth(req: Request, env: Env, url: URL): Promise<Response> {
 
     await env.DB.prepare("UPDATE users SET last_login = unixepoch() WHERE id = ?").bind(user.id).run();
     const jwtToken = await signJwt({ sub: user.id, email: user.email, username: user.username }, env.JWT_SECRET);
-
     return Response.redirect(`${env.APP_URL}/?token=${jwtToken}#auth`, 302);
   }
 
@@ -139,12 +150,130 @@ async function handleAuth(req: Request, env: Env, url: URL): Promise<Response> {
     return json({ user }, 200, origin);
   }
 
+  // ── SESSION TRACKING ─────────────────────────────────────────────────────
+
+  // POST /auth/session/start — викликається при вході на сайт
+  if (url.pathname === "/auth/session/start" && req.method === "POST") {
+    const user = await getUser(req, env);
+    if (!user) return json({ error: "Не авторизовано" }, 401, origin);
+
+    const result = await env.DB.prepare(
+      "INSERT INTO sessions (user_id) VALUES (?) RETURNING id"
+    ).bind(user.sub).first() as any;
+
+    return json({ session_id: result.id }, 200, origin);
+  }
+
+  // POST /auth/session/heartbeat — викликається кожні 30 сек поки юзер на сайті
+  if (url.pathname === "/auth/session/heartbeat" && req.method === "POST") {
+    const user = await getUser(req, env);
+    if (!user) return json({ ok: false }, 401, origin);
+    const { session_id } = await req.json() as any;
+
+    await env.DB.prepare(
+      "UPDATE sessions SET last_heartbeat = unixepoch(), duration_seconds = unixepoch() - started_at WHERE id = ? AND user_id = ?"
+    ).bind(session_id, user.sub).run();
+
+    return json({ ok: true }, 200, origin);
+  }
+
+  // POST /auth/session/end — викликається при виході зі сторінки
+  if (url.pathname === "/auth/session/end" && req.method === "POST") {
+    const user = await getUser(req, env);
+    if (!user) return json({ ok: false }, 401, origin);
+    const { session_id } = await req.json() as any;
+
+    await env.DB.prepare(
+      "UPDATE sessions SET ended_at = unixepoch(), duration_seconds = unixepoch() - started_at WHERE id = ? AND user_id = ?"
+    ).bind(session_id, user.sub).run();
+
+    return json({ ok: true }, 200, origin);
+  }
+
+  // ── STATS ────────────────────────────────────────────────────────────────
+
+  // GET /auth/stats — статистика (захищена паролем адміна)
+  if (url.pathname === "/auth/stats" && req.method === "GET") {
+    // Проста захист через query param: ?admin_key=...
+    const adminKey = url.searchParams.get("admin_key");
+    if (!adminKey || adminKey !== env.ADMIN_KEY) {
+      return json({ error: "Доступ заборонено" }, 403, origin);
+    }
+
+    // Загальна кількість користувачів
+    const totalUsers = await env.DB.prepare("SELECT COUNT(*) as count FROM users").first() as any;
+
+    // Активні сьогодні (сесія почалась сьогодні)
+    const todayActive = await env.DB.prepare(
+      "SELECT COUNT(DISTINCT user_id) as count FROM sessions WHERE started_at >= unixepoch('now', 'start of day')"
+    ).first() as any;
+
+    // Активні за останні 7 днів
+    const weekActive = await env.DB.prepare(
+      "SELECT COUNT(DISTINCT user_id) as count FROM sessions WHERE started_at >= unixepoch() - 604800"
+    ).first() as any;
+
+    // Активні за останні 30 днів
+    const monthActive = await env.DB.prepare(
+      "SELECT COUNT(DISTINCT user_id) as count FROM sessions WHERE started_at >= unixepoch() - 2592000"
+    ).first() as any;
+
+    // Активних за кожен день (останні 30 днів)
+    const dailyStats = await env.DB.prepare(`
+      SELECT
+        date(started_at, 'unixepoch') as day,
+        COUNT(DISTINCT user_id) as unique_users,
+        COUNT(*) as total_sessions,
+        ROUND(AVG(CASE WHEN duration_seconds > 0 THEN duration_seconds ELSE NULL END)) as avg_duration_sec
+      FROM sessions
+      WHERE started_at >= unixepoch() - 2592000
+      GROUP BY day
+      ORDER BY day DESC
+    `).all();
+
+    // Топ користувачів за часом на сайті (останні 30 днів)
+    const topUsers = await env.DB.prepare(`
+      SELECT
+        u.username,
+        u.email,
+        COUNT(s.id) as sessions_count,
+        SUM(CASE WHEN s.duration_seconds > 0 THEN s.duration_seconds ELSE 0 END) as total_seconds,
+        MAX(s.started_at) as last_visit
+      FROM users u
+      LEFT JOIN sessions s ON s.user_id = u.id AND s.started_at >= unixepoch() - 2592000
+      GROUP BY u.id
+      ORDER BY total_seconds DESC
+      LIMIT 20
+    `).all();
+
+    // Нові юзери за кожен день (останні 30 днів)
+    const newUsersDaily = await env.DB.prepare(`
+      SELECT
+        date(created_at, 'unixepoch') as day,
+        COUNT(*) as new_users
+      FROM users
+      WHERE created_at >= unixepoch() - 2592000
+      GROUP BY day
+      ORDER BY day DESC
+    `).all();
+
+    return json({
+      summary: {
+        total_users: totalUsers?.count || 0,
+        active_today: todayActive?.count || 0,
+        active_week: weekActive?.count || 0,
+        active_month: monthActive?.count || 0,
+      },
+      daily_stats: dailyStats.results,
+      top_users: topUsers.results,
+      new_users_daily: newUsersDaily.results,
+    }, 200, origin);
+  }
+
   return json({ error: "Not found" }, 404, origin);
 }
 
-// ============================================================
-//  DURABLE OBJECT — Ігрові кімнати (без змін)
-// ============================================================
+// ── Durable Object ────────────────────────────────────────────────────────────
 
 type PID = "p1" | "p2";
 type Bot = { x:number; y:number; a:number; vx:number; vy:number; wa:number; l:number; r:number; };
@@ -258,4 +387,5 @@ export interface Env {
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
   APP_URL: string;
+  ADMIN_KEY: string;
 }
