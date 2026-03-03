@@ -1526,6 +1526,7 @@ TRACKS['CustomLine'] = {
         this.setTrack(last);
       }},'Траса');
 
+      /* ── Сумо онлайн кнопки відключені ──
       // "Сумо онлайн" is now a single button that:
       // 1) switches to the sumo arena
       // 2) toggles online connection (connect/disconnect)
@@ -1594,6 +1595,7 @@ TRACKS['CustomLine'] = {
       const btnExitOnline = makeEl('button',{class:'rcsim2d-topBtn',onclick:()=>{ try{ this.disconnectOnline && this.disconnectOnline(); }catch(e){} }},'Вийти');
       this.ui.btnExitOnline = btnExitOnline;
       btnExitOnline.style.display='none';
+      ── кінець блоку Сумо онлайн ── */
 
 
       // Top tools: obstacles + line brush/eraser + help.
@@ -1652,9 +1654,9 @@ TRACKS['CustomLine'] = {
       top.appendChild(title);
       top.appendChild(btnPanel);
       top.appendChild(btnTrack);
-      top.appendChild(btnSumoOnline);
-      top.appendChild(this.ui.roomInput);
-      top.appendChild(btnExitOnline);
+      /* top.appendChild(btnSumoOnline);   // Сумо онлайн — відключено
+      top.appendChild(this.ui.roomInput); // ROOM — відключено
+      top.appendChild(btnExitOnline);     // Exit online — відключено */
       top.appendChild(tools);
       top.appendChild(btnBack);
 
