@@ -1132,9 +1132,9 @@ select, option{
                     <i id="uploadProgIcon" class="fa-solid fa-upload"></i>
                 </button>
 
-                <button onclick="openSim2D()" class="top-btn btn-sim" title="Траса / Сумо онлайн">
+                <!-- <button onclick="openSim2D()" class="top-btn btn-sim" title="Траса / Сумо онлайн">
                     <i class="fa-solid fa-flag-checkered"></i>
-                </button>
+                </button> -->
             </div>
 <div id="blocklyDiv" class="flex-1 mt-0"></div>
         <!-- Кастомний скролбар для flyout на мобільному -->
@@ -1228,6 +1228,114 @@ select, option{
             </div>
         </section>
     </main>
+
+    <!-- ====================================================
+         CUSTOM BLUETOOTH MODAL
+    ===================================================== -->
+    <div id="btModal" class="fixed inset-0 z-[90] hidden" onclick="btModalOverlayClick(event)">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="relative w-full max-w-sm rounded-2xl border border-slate-700 shadow-2xl overflow-hidden" onclick="event.stopPropagation()" style="background: rgba(14,22,40,0.97)">
+
+                <!-- Animated top bar -->
+                <div id="btModalTopBar" class="h-1 bg-blue-600 transition-all duration-500" style="width:0%"></div>
+
+                <!-- Header -->
+                <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-white/8">
+                    <div class="flex items-center gap-3">
+                        <div id="btModalIcon" class="w-10 h-10 rounded-xl bg-blue-600/20 border border-blue-500/30 flex items-center justify-center">
+                            <i class="fa-brands fa-bluetooth-b text-blue-400 text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-bold text-base leading-tight">Підключення</h3>
+                            <p id="btModalSubtitle" class="text-slate-400 text-xs mt-0.5">Обери свого робота</p>
+                        </div>
+                    </div>
+                    <button onclick="closeBtModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 border border-white/8 flex items-center justify-center text-slate-400 hover:text-white transition-all">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+
+                <!-- Body -->
+                <div class="p-5 space-y-3">
+
+                    <!-- Status / scanning indicator -->
+                    <div id="btScanStatus" class="flex items-center gap-3 bg-blue-500/8 border border-blue-500/20 rounded-xl px-4 py-3">
+                        <div id="btScanDot" class="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" style="animation: btPulse 1.4s ease-in-out infinite"></div>
+                        <span id="btScanText" class="text-blue-300 text-sm font-medium">Натисни «Сканувати» щоб знайти роботів</span>
+                    </div>
+
+                    <!-- Filter info -->
+                    <div class="bg-white/4 border border-white/8 rounded-xl px-4 py-3 flex items-start gap-3">
+                        <i class="fa-solid fa-filter text-slate-400 text-xs mt-1 flex-shrink-0"></i>
+                        <p class="text-slate-400 text-xs leading-relaxed">
+                            Показуються тільки <span class="text-slate-200 font-semibold">роботи і мікроконтролери</span> (HC‑05, HC‑08, ESP32, STM32). Телефони та комп'ютери приховані.
+                        </p>
+                    </div>
+
+                    <!-- Device list -->
+                    <div id="btDeviceList" class="hidden space-y-2 max-h-52 overflow-y-auto pr-1">
+                        <!-- filled by JS -->
+                    </div>
+
+                    <!-- Connecting state -->
+                    <div id="btConnecting" class="hidden flex-col items-center gap-3 py-4">
+                        <div class="relative w-14 h-14">
+                            <div class="absolute inset-0 rounded-full border-2 border-blue-500/30"></div>
+                            <div class="absolute inset-0 rounded-full border-2 border-transparent border-t-blue-400" style="animation: spin 0.9s linear infinite"></div>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <i class="fa-brands fa-bluetooth-b text-blue-400"></i>
+                            </div>
+                        </div>
+                        <p id="btConnectingName" class="text-white text-sm font-semibold text-center"></p>
+                        <p class="text-slate-400 text-xs">З'єднання...</p>
+                    </div>
+
+                    <!-- Success state -->
+                    <div id="btSuccess" class="hidden flex-col items-center gap-3 py-4">
+                        <div class="w-14 h-14 rounded-full bg-green-500/20 border border-green-500/40 flex items-center justify-center">
+                            <i class="fa-solid fa-check text-green-400 text-xl"></i>
+                        </div>
+                        <p id="btSuccessName" class="text-white text-sm font-semibold text-center"></p>
+                        <p class="text-green-400 text-xs">Підключено!</p>
+                    </div>
+
+                    <!-- Scan button -->
+                    <button id="btScanBtn" onclick="startBtScan()"
+                        class="w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 text-white"
+                        style="background: linear-gradient(135deg, #2563eb, #1d4ed8); box-shadow: 0 8px 20px rgba(37,99,235,0.35)">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        Сканувати
+                    </button>
+
+                    <!-- Disconnect button (when connected) -->
+                    <button id="btDisconnectBtn" onclick="doDisconnect()" class="hidden w-full py-3 rounded-xl font-bold text-sm bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-400 transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-link-slash"></i>
+                        Відключитись
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    @keyframes btPulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%       { opacity: 0.4; transform: scale(0.7); }
+    }
+    #btDeviceList::-webkit-scrollbar { width: 4px; }
+    #btDeviceList::-webkit-scrollbar-track { background: transparent; }
+    #btDeviceList::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+    .bt-device-item {
+        display: flex; align-items: center; gap: 12px;
+        padding: 10px 14px; border-radius: 14px; cursor: pointer;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.04);
+        transition: all 0.15s ease;
+    }
+    .bt-device-item:hover { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.35); }
+    .bt-device-item:active { transform: scale(0.98); }
+    </style>
 
     <div id="exampleModal" class="fixed inset-0 bg-black/80 z-[70] hidden flex items-center justify-center backdrop-blur-sm p-4">
         <div class="bg-slate-900 w-full max-w-sm rounded-2xl shadow-2xl border border-slate-700 p-5 overflow-y-auto max-h-[90vh]">
@@ -1765,61 +1873,195 @@ const SLIP_END = 0xC0;
             try { await characteristic.writeValue(finalPacket); log(`Cmd: ${str}`, 'tx'); } catch(e) { log(e, 'err'); }
         }
 
-        btnConnect.addEventListener('click', async () => {
-            if(isConnected) { if(device) device.gatt.disconnect(); return; }
+        btnConnect.addEventListener('click', () => openBtModal());
+
+        // ══════════════════════════════════════════════════════
+        //  CUSTOM BLUETOOTH MODAL
+        // ══════════════════════════════════════════════════════
+        function openBtModal() {
+            const modal = document.getElementById('btModal');
+            modal.classList.remove('hidden');
+            if (isConnected) {
+                showBtConnectedState(device ? device.name : 'Пристрій');
+            } else {
+                resetBtModal();
+            }
+        }
+
+        function closeBtModal() {
+            document.getElementById('btModal').classList.add('hidden');
+        }
+
+        function btModalOverlayClick(e) {
+            if (e.target === e.currentTarget || e.target.classList.contains('absolute')) closeBtModal();
+        }
+
+        function resetBtModal() {
+            document.getElementById('btDeviceList').classList.add('hidden');
+            document.getElementById('btDeviceList').innerHTML = '';
+            document.getElementById('btConnecting').classList.add('hidden');
+            document.getElementById('btConnecting').style.display = '';
+            document.getElementById('btSuccess').classList.add('hidden');
+            document.getElementById('btSuccess').style.display = '';
+            document.getElementById('btScanStatus').classList.remove('hidden');
+            document.getElementById('btScanBtn').classList.remove('hidden');
+            document.getElementById('btDisconnectBtn').classList.add('hidden');
+            document.getElementById('btModalTopBar').style.width = '0%';
+            setBtScanText('🔍 Натисни «Сканувати» щоб знайти роботів', 'blue');
+            document.getElementById('btModalSubtitle').textContent = 'Обери свого робота';
+        }
+
+        function setBtScanText(text, color = 'blue') {
+            const colors = {
+                blue:  ['bg-blue-500/8','border-blue-500/20','text-blue-300','bg-blue-400'],
+                green: ['bg-green-500/8','border-green-500/20','text-green-300','bg-green-400'],
+                red:   ['bg-red-500/8','border-red-500/20','text-red-300','bg-red-400'],
+                yellow:['bg-yellow-500/8','border-yellow-500/20','text-yellow-300','bg-yellow-400'],
+            };
+            const c = colors[color] || colors.blue;
+            const box = document.getElementById('btScanStatus');
+            const dot = document.getElementById('btScanDot');
+            const txt = document.getElementById('btScanText');
+            box.className = `flex items-center gap-3 ${c[0]} border ${c[1]} rounded-xl px-4 py-3`;
+            dot.className = `w-2 h-2 rounded-full ${c[3]} flex-shrink-0`;
+            txt.className  = `${c[2]} text-sm font-medium`;
+            txt.textContent = text;
+        }
+
+        async function startBtScan() {
+            const btn = document.getElementById('btScanBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Скануємо...';
+
+            setBtScanText('📡 Відкрий список пристроїв у браузері...', 'yellow');
+            document.getElementById('btModalTopBar').style.width = '40%';
+
+            // Robot service UUIDs — filters out phones/computers
+            const robotFilters = [
+                { services: [0xFFE0] },                                           // HC-05/HC-08 classic BT SPP
+                { services: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e'] },          // Nordic UART (ESP32, nRF)
+            ];
+
             try {
-                log('Scanning...', 'info');
                 device = await navigator.bluetooth.requestDevice({
-                    acceptAllDevices: true,
+                    filters: robotFilters,
                     optionalServices: [0xFFE0, "6e400001-b5a3-f393-e0a9-e50e24dcca9e"]
                 });
-                device.addEventListener('gattserverdisconnected', () => {
-                    isConnected = false; window.isConnected = false; window.characteristic = null; statusDot.classList.remove('connected'); statusText.innerText = "OFFLINE";
+
+                // User picked a device → connect
+                await connectToDevice(device);
+
+            } catch(e) {
+                if (e && e.name === 'NotFoundError') {
+                    setBtScanText('❌ Пристрій не обрано', 'red');
+                } else if (e && e.name === 'SecurityError') {
+                    setBtScanText('❌ Потрібен HTTPS або localhost', 'red');
+                } else if (e && e.name === 'NotSupportedError') {
+                    setBtScanText('❌ Bluetooth не підтримується браузером', 'red');
+                } else {
+                    setBtScanText('❌ ' + (e ? (e.message || String(e)) : 'Невідома помилка'), 'red');
+                }
+                document.getElementById('btModalTopBar').style.width = '0%';
+                log('❌ BT: ' + (e ? (e.message || String(e)) : '?'), 'err');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> Сканувати';
+            }
+        }
+
+        async function connectToDevice(dev) {
+            // Show connecting UI
+            document.getElementById('btScanStatus').classList.add('hidden');
+            document.getElementById('btScanBtn').classList.add('hidden');
+            document.getElementById('btConnecting').classList.remove('hidden');
+            document.getElementById('btConnecting').style.display = 'flex';
+            document.getElementById('btConnectingName').textContent = dev.name || 'Невідомий пристрій';
+            document.getElementById('btModalTopBar').style.width = '65%';
+
+            try {
+                dev.addEventListener('gattserverdisconnected', () => {
+                    isConnected = false; window.isConnected = false; window.characteristic = null;
+                    statusDot.classList.remove('connected');
                     setScratchBtState(false);
                     btnConnect.classList.remove('bg-red-600'); btnConnect.classList.add('bg-blue-600');
-                    log('⚠️ BT: З\'єднання втрачено (' + (device ? device.name : '?') + ')', 'err');
+                    log('⚠️ BT: З\'єднання втрачено (' + (dev.name || '?') + ')', 'err');
+                    // Reset modal to disconnected state if open
+                    if (!document.getElementById('btModal').classList.contains('hidden')) {
+                        resetBtModal();
+                        document.getElementById('btDisconnectBtn').classList.add('hidden');
+                    }
                 });
-                const server = await device.gatt.connect();
+
+                const server = await dev.gatt.connect();
                 let service;
-                try { service = await server.getPrimaryService(0xFFE0); characteristic = await service.getCharacteristic(0xFFE1); } 
-                catch(e) { service = await server.getPrimaryService("6e400001-b5a3-f393-e0a9-e50e24dcca9e"); characteristic = await service.getCharacteristic("6e400002-b5a3-f393-e0a9-e50e24dcca9e"); }
+                try {
+                    service = await server.getPrimaryService(0xFFE0);
+                    characteristic = await service.getCharacteristic(0xFFE1);
+                } catch(e) {
+                    service = await server.getPrimaryService("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
+                    characteristic = await service.getCharacteristic("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
+                }
 
                 try {
                     await characteristic.startNotifications();
                     characteristic.addEventListener('characteristicvaluechanged', (e) => {
                         const rawData = new Uint8Array(e.target.value.buffer);
-                        
                         if (tuning.useSlip) {
-                            for(let i=0; i<rawData.length; i++) {
-                                processSlipData(rawData[i]);
-                            }
+                            for(let i=0; i<rawData.length; i++) processSlipData(rawData[i]);
                         } else {
-                             handlePacket(Array.from(rawData));
+                            handlePacket(Array.from(rawData));
                         }
                     });
-                } catch(e){}
+                } catch(e) {}
 
-                isConnected = true; window.isConnected = true; window.characteristic = characteristic; statusDot.classList.add('connected'); statusText.innerText = "ONLINE";
+                isConnected = true; window.isConnected = true; window.characteristic = characteristic;
+                statusDot.classList.add('connected');
                 setScratchBtState(true);
                 btnConnect.classList.remove('bg-blue-600'); btnConnect.classList.add('bg-red-600');
-                log('✅ BT: Підключено до ' + (device ? device.name : 'пристрою'), 'info');
+
+                document.getElementById('btModalTopBar').style.width = '100%';
+                showBtConnectedState(dev.name || 'Пристрій');
+                log('✅ BT: Підключено до ' + (dev.name || 'пристрою'), 'info');
+
+                // Auto-close after 1.5s
+                setTimeout(() => closeBtModal(), 1500);
+
             } catch(e) {
-                /* Детальне логування помилок підключення */
-                let errMsg = '';
-                if (e && e.name === 'NotFoundError') {
-                    errMsg = '❌ BT: Пристрій не обрано (скасовано)';
-                } else if (e && e.name === 'SecurityError') {
-                    errMsg = '❌ BT: Немає дозволу. Потрібен HTTPS або localhost';
-                } else if (e && e.name === 'NetworkError') {
-                    errMsg = '❌ BT: GATT з\'єднання не вдалося (пристрій поруч?)';
-                } else if (e && e.name === 'NotSupportedError') {
-                    errMsg = '❌ BT: Bluetooth не підтримується браузером';
-                } else {
-                    errMsg = '❌ BT: ' + (e ? (e.message || String(e)) : 'Невідома помилка');
-                }
-                log(errMsg, 'err');
+                document.getElementById('btConnecting').classList.add('hidden');
+                document.getElementById('btConnecting').style.display = '';
+                document.getElementById('btScanStatus').classList.remove('hidden');
+                document.getElementById('btScanBtn').classList.remove('hidden');
+                setBtScanText('❌ Не вдалося підключитись: ' + (e.message || String(e)), 'red');
+                document.getElementById('btModalTopBar').style.width = '0%';
+                log('❌ BT: ' + (e.message || String(e)), 'err');
             }
-        });
+        }
+
+        function showBtConnectedState(name) {
+            document.getElementById('btScanStatus').classList.add('hidden');
+            document.getElementById('btScanBtn').classList.add('hidden');
+            document.getElementById('btConnecting').classList.add('hidden');
+            document.getElementById('btConnecting').style.display = '';
+            document.getElementById('btDeviceList').classList.add('hidden');
+            document.getElementById('btSuccess').classList.remove('hidden');
+            document.getElementById('btSuccess').style.display = 'flex';
+            document.getElementById('btSuccessName').textContent = name;
+            document.getElementById('btDisconnectBtn').classList.remove('hidden');
+            document.getElementById('btModalTopBar').style.width = '100%';
+            document.getElementById('btModalSubtitle').textContent = 'Підключено';
+        }
+
+        function doDisconnect() {
+            if (device) device.gatt.disconnect();
+            btnConnect.classList.remove('bg-red-600'); btnConnect.classList.add('bg-blue-600');
+            isConnected = false; window.isConnected = false;
+            statusDot.classList.remove('connected');
+            setScratchBtState(false);
+            resetBtModal();
+            closeBtModal();
+        }
+        // ══════════════════════════════════════════════════════
+
 
         function toggleScratchMode(force) {
 
@@ -2741,12 +2983,14 @@ function ensureLogExportButton(){
 
 })();
 </script>
+  <!-- three.js + sim скрипти відключені (сумо онлайн не використовується)
   <script src="https://unpkg.com/three@0.155.0/build/three.min.js"></script>
   <script src="https://unpkg.com/three@0.155.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://unpkg.com/three@0.155.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="rc_sim2d_3d_overlay.js"></script>
   <script src="rc_sim2d_online.js"></script>
   <script src="rc_sim2d_core.js"></script>
+  -->
 
 <script>
 /* Ctrl+U = Upload to robot */
@@ -2760,84 +3004,49 @@ document.addEventListener('keydown', function(e) {
 
 
 
-<script>
-// ─── Session Tracking ────────────────────────────────────────────────────────
-let _sessionId = null;
-let _pingInterval = null;
-
-async function startSession() {
-  const token = getAuthToken();
-  if (!token) return;
-  try {
-    const res = await fetch(AUTH_SERVER + "/auth/session/start", {
-      method: "POST", headers: { Authorization: "Bearer " + token }
-    });
-    const data = await res.json();
-    _sessionId = data.session_id;
-    _pingInterval = setInterval(pingSession, 30000);
-  } catch(e) {}
-}
-
-async function pingSession() {
-  if (!_sessionId) return;
-  try {
-    await fetch(AUTH_SERVER + "/auth/session/ping", {
-      method: "POST", headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({ session_id: _sessionId })
-    });
-  } catch(e) {}
-}
-
-async function endSession() {
-  if (!_sessionId) return;
-  clearInterval(_pingInterval);
-  try {
-    navigator.sendBeacon(AUTH_SERVER + "/auth/session/end",
-      JSON.stringify({ session_id: _sessionId }));
-  } catch(e) {}
-  _sessionId = null;
-}
-
-window.addEventListener("beforeunload", endSession);
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) pingSession();
-});
-
-// Хук: запускати сесію після входу
-const _origSetLoggedIn = typeof setLoggedIn !== "undefined" ? setLoggedIn : null;
-</script>
 
 <!-- ====================================================
      AUTH MODAL — Вхід / Реєстрація
 ===================================================== -->
 <div id="authModal" class="fixed inset-0 z-[100] hidden" onclick="handleAuthOverlayClick(event)">
-    <!-- Backdrop -->
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+
+    <!-- Animated background -->
+    <div class="auth-bg-wrap absolute inset-0">
+        <div class="auth-bg-blob auth-blob-1"></div>
+        <div class="auth-bg-blob auth-blob-2"></div>
+        <div class="auth-bg-blob auth-blob-3"></div>
+        <div class="absolute inset-0" style="backdrop-filter: blur(40px); background: rgba(6,10,22,0.78)"></div>
+    </div>
 
     <!-- Modal -->
-    <div class="absolute inset-0 flex items-center justify-center p-4">
-        <div class="relative bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-sm p-6" onclick="event.stopPropagation()">
+    <div class="absolute inset-0 flex items-center justify-center p-0 sm:p-6">
+        <div class="auth-card relative w-full sm:max-w-sm sm:rounded-2xl" onclick="event.stopPropagation()">
+
+            <!-- Subtle top accent line -->
+            <div style="height:2px; background: linear-gradient(90deg, transparent, #3b82f6, #8b5cf6, transparent); border-radius: 99px 99px 0 0"></div>
+
+            <div class="px-6 pt-7 pb-7">
 
             <!-- Close -->
-            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors">
-                <i class="fa-solid fa-xmark text-xl"></i>
+            <button onclick="closeAuthModal()" class="absolute top-5 right-5 w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-white transition-colors" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1)">
+                <i class="fa-solid fa-xmark"></i>
             </button>
 
             <!-- Logo / Title -->
-            <div class="text-center mb-6">
-                <div class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+            <div class="text-center mb-7">
+                <div class="auth-logo-wrap w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
                     <i class="fa-solid fa-robot text-2xl text-white"></i>
                 </div>
-                <h2 class="text-white text-xl font-bold">RoboScratch</h2>
-                <p class="text-slate-400 text-sm mt-1" id="authSubtitle">Увійдіть або зареєструйтеся</p>
+                <h2 class="text-white text-2xl font-bold tracking-tight">RoboScratch</h2>
+                <p class="text-slate-400 text-sm mt-1.5" id="authSubtitle">Увійдіть або зареєструйтеся</p>
             </div>
 
             <!-- Tabs -->
-            <div class="flex bg-slate-800 rounded-xl p-1 mb-5">
-                <button id="tabLogin" onclick="switchAuthTab('login')" class="flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-blue-600 text-white">
+            <div class="flex rounded-xl p-1 mb-6" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08)">
+                <button id="tabLogin" onclick="switchAuthTab('login')" class="flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all bg-blue-600 text-white shadow-lg">
                     Вхід
                 </button>
-                <button id="tabRegister" onclick="switchAuthTab('register')" class="flex-1 py-2 text-sm font-medium rounded-lg transition-all text-slate-400 hover:text-white">
+                <button id="tabRegister" onclick="switchAuthTab('register')" class="flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all text-slate-400 hover:text-white">
                     Реєстрація
                 </button>
             </div>
@@ -2846,40 +3055,40 @@ const _origSetLoggedIn = typeof setLoggedIn !== "undefined" ? setLoggedIn : null
             <div id="authError" class="hidden bg-red-500/20 border border-red-500/50 text-red-300 text-sm px-3 py-2 rounded-lg mb-4"></div>
 
             <!-- Form fields -->
-            <div id="registerFields" class="hidden mb-4">
+            <div id="registerFields" class="hidden mb-3">
                 <input id="authUsername" type="text" placeholder="Ім'я / нікнейм" maxlength="32"
-                    class="w-full bg-slate-800 border border-slate-700 text-white placeholder-slate-500 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-500 transition-colors">
+                    class="auth-input w-full text-white placeholder-slate-500 rounded-xl px-4 py-3.5 text-sm outline-none transition-all">
             </div>
 
-            <div class="mb-4">
+            <div class="mb-3">
                 <input id="authEmail" type="email" placeholder="Електронна пошта"
-                    class="w-full bg-slate-800 border border-slate-700 text-white placeholder-slate-500 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-500 transition-colors">
+                    class="auth-input w-full text-white placeholder-slate-500 rounded-xl px-4 py-3.5 text-sm outline-none transition-all">
             </div>
 
-            <div class="mb-5 relative">
+            <div class="mb-6 relative">
                 <input id="authPassword" type="password" placeholder="Пароль (мін. 6 символів)"
-                    class="w-full bg-slate-800 border border-slate-700 text-white placeholder-slate-500 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-500 transition-colors pr-12">
+                    class="auth-input w-full text-white placeholder-slate-500 rounded-xl px-4 py-3.5 text-sm outline-none transition-all pr-12">
                 <button onclick="togglePasswordVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors">
                     <i class="fa-solid fa-eye text-sm" id="eyeIcon"></i>
                 </button>
             </div>
 
             <!-- Submit -->
-            <button id="authSubmitBtn" onclick="submitAuth()" class="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-all text-sm shadow-lg mb-4 flex items-center justify-center gap-2">
+            <button id="authSubmitBtn" onclick="submitAuth()" class="auth-submit-btn w-full text-white font-semibold py-3.5 rounded-xl transition-all text-sm shadow-xl mb-4 flex items-center justify-center gap-2">
                 <span id="authBtnText">Увійти</span>
                 <span id="authBtnLoader" class="hidden w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
             </button>
 
             <!-- Divider -->
             <div class="flex items-center gap-3 mb-4">
-                <div class="flex-1 h-px bg-slate-700"></div>
+                <div class="flex-1 h-px" style="background:rgba(255,255,255,0.1)"></div>
                 <span class="text-slate-500 text-xs">або</span>
-                <div class="flex-1 h-px bg-slate-700"></div>
+                <div class="flex-1 h-px" style="background:rgba(255,255,255,0.1)"></div>
             </div>
 
             <!-- Google OAuth -->
             <a id="btnGoogle" href="#" onclick="loginWithGoogle(event)"
-               class="flex items-center justify-center gap-3 w-full bg-white hover:bg-gray-100 text-gray-800 font-medium py-3 rounded-xl transition-all text-sm shadow-md">
+               class="flex items-center justify-center gap-3 w-full bg-white hover:bg-gray-100 active:bg-gray-200 text-gray-800 font-medium py-3.5 rounded-xl transition-all text-sm shadow-md">
                 <svg width="18" height="18" viewBox="0 0 18 18">
                     <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
                     <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
@@ -2889,15 +3098,143 @@ const _origSetLoggedIn = typeof setLoggedIn !== "undefined" ? setLoggedIn : null
                 Продовжити з Google
             </a>
 
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Стиль для анімації спінера -->
+<!-- Auth modal styles -->
 <style>
 @keyframes spin { to { transform: rotate(360deg); } }
 .animate-spin { animation: spin 0.8s linear infinite; }
+
+/* ── Animated background blobs ── */
+.auth-bg-wrap { overflow: hidden; background: #060a16; }
+
+.auth-bg-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(72px);
+    opacity: 0.55;
+}
+.auth-blob-1 {
+    width: 420px; height: 420px;
+    background: radial-gradient(circle, #1e40af, #1d4ed8);
+    top: -80px; left: -80px;
+    animation: blobFloat1 9s ease-in-out infinite;
+}
+.auth-blob-2 {
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, #6d28d9, #7c3aed);
+    bottom: -60px; right: -60px;
+    animation: blobFloat2 11s ease-in-out infinite;
+}
+.auth-blob-3 {
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, #0e7490, #0891b2);
+    bottom: 20%; left: 20%;
+    animation: blobFloat3 13s ease-in-out infinite;
+}
+
+@keyframes blobFloat1 {
+    0%,100% { transform: translate(0px, 0px) scale(1); }
+    33%      { transform: translate(40px, 30px) scale(1.08); }
+    66%      { transform: translate(-20px, 50px) scale(0.95); }
+}
+@keyframes blobFloat2 {
+    0%,100% { transform: translate(0px, 0px) scale(1); }
+    40%      { transform: translate(-50px, -30px) scale(1.1); }
+    70%      { transform: translate(20px, -50px) scale(0.92); }
+}
+@keyframes blobFloat3 {
+    0%,100% { transform: translate(0px, 0px) scale(1); }
+    50%      { transform: translate(30px, -40px) scale(1.12); }
+}
+
+/* ── Card ── */
+.auth-card {
+    background: linear-gradient(160deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.03) 100%);
+    background-color: rgba(10,16,34,0.72);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06) inset;
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+}
+/* Full-screen on mobile */
+@media (max-width: 639px) {
+    .auth-card {
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        border-radius: 0 !important;
+        border: none !important;
+    }
+}
+
+/* ── Logo ── */
+.auth-logo-wrap {
+    background: linear-gradient(135deg, #2563eb, #7c3aed);
+    box-shadow: 0 12px 32px rgba(37,99,235,0.5), 0 0 0 1px rgba(255,255,255,0.15) inset;
+    animation: logoGlow 3s ease-in-out infinite;
+}
+@keyframes logoGlow {
+    0%,100% { box-shadow: 0 12px 32px rgba(37,99,235,0.5), 0 0 0 1px rgba(255,255,255,0.15) inset; }
+    50%      { box-shadow: 0 16px 40px rgba(124,58,237,0.6), 0 0 0 1px rgba(255,255,255,0.20) inset; }
+}
+
+/* ── Inputs ── */
+.auth-input {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.10);
+    color: white;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.auth-input:focus {
+    border-color: rgba(59,130,246,0.6) !important;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12), inset 0 1px 0 rgba(255,255,255,0.06);
+    outline: none;
+}
+.auth-input-error {
+    border-color: rgba(239,68,68,0.7) !important;
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.12), inset 0 1px 0 rgba(255,255,255,0.06) !important;
+    animation: authShake 0.35s ease;
+}
+@keyframes authShake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-5px); }
+    40%      { transform: translateX(5px); }
+    60%      { transform: translateX(-3px); }
+    80%      { transform: translateX(3px); }
+}
+
+/* ── Submit button ── */
+.auth-submit-btn {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 8px 24px rgba(37,99,235,0.45);
+    border: 1px solid rgba(255,255,255,0.12);
+    transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+}
+.auth-submit-btn:hover  { filter: brightness(1.1); box-shadow: 0 10px 28px rgba(37,99,235,0.55); }
+.auth-submit-btn:active { transform: scale(0.98); }
+
+/* ── Modal entrance animation ── */
+#authModal:not(.hidden) .auth-card {
+    animation: authSlideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes authSlideIn {
+    from { opacity: 0; transform: translateY(24px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (max-width: 639px) {
+    @keyframes authSlideIn {
+        from { opacity: 0; transform: translateY(40px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+}
 </style>
+
 
 <!-- ====================================================
      AUTH SCRIPT
@@ -2944,7 +3281,10 @@ let authTab = "login";
 // ─── UI функції ─────────────────────────────────────────
 function openAuthModal() {
     document.getElementById("authModal").classList.remove("hidden");
-    setTimeout(() => document.getElementById("authEmail")?.focus(), 100);
+    // Фокус тільки на ПК, на телефоні не відкривати клавіатуру автоматично
+    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+        setTimeout(() => document.getElementById("authEmail")?.focus(), 100);
+    }
 }
 
 function closeAuthModal() {
@@ -2981,10 +3321,19 @@ function togglePasswordVisibility() {
     }
 }
 
-function showAuthError(msg) {
+function showAuthError(msg, fieldId) {
     const el = document.getElementById("authError");
     el.textContent = msg;
     el.classList.remove("hidden");
+    // Підсвітити поле з помилкою
+    document.querySelectorAll(".auth-input").forEach(i => i.classList.remove("auth-input-error"));
+    if (fieldId) {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.classList.add("auth-input-error");
+            field.addEventListener("input", () => field.classList.remove("auth-input-error"), { once: true });
+        }
+    }
 }
 
 function clearAuthError() {
@@ -3045,6 +3394,22 @@ async function submitAuth() {
 
     if (!email || !password) return showAuthError("Заповніть всі поля");
     if (authTab === "register" && !username) return showAuthError("Введіть ім'я");
+
+    // ── Валідація email ──────────────────────────────────
+    const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+    if (email.includes(" ")) {
+        showAuthError("Email не може містити пробіли", "authEmail");
+        return;
+    }
+    if (!emailRegex.test(email)) {
+        showAuthError("Некоректна email. Приклад: name@gmail.com", "authEmail");
+        return;
+    }
+    if (password.length < 6) {
+        showAuthError("Пароль має бути мінімум 6 символів", "authPassword");
+        return;
+    }
+    // ───────────────────────────────────────────────
 
     setAuthLoading(true);
     try {
