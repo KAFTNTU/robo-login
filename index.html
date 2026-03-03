@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -2137,8 +2138,8 @@ const SLIP_END = 0xC0;
 
         let lastKeyboardEdgeVibrate = 0;
         const keys = { w: false, a: false, s: false, d: false };
-        document.addEventListener('keydown', (e) => { if(activeView!=='view-joystick')return; const k=e.key.toLowerCase(); if(keys.hasOwnProperty(k)){keys[k]=true; updateKeyboardLogic();} });
-        document.addEventListener('keyup', (e) => { if(activeView!=='view-joystick')return; const k=e.key.toLowerCase(); if(keys.hasOwnProperty(k)){keys[k]=false; updateKeyboardLogic();} });
+        document.addEventListener('keydown', (e) => { if(activeView!=='view-joystick')return; if(!e.key)return; const k=e.key.toLowerCase(); if(keys.hasOwnProperty(k)){keys[k]=true; updateKeyboardLogic();} });
+        document.addEventListener('keyup', (e) => { if(activeView!=='view-joystick')return; if(!e.key)return; const k=e.key.toLowerCase(); if(keys.hasOwnProperty(k)){keys[k]=false; updateKeyboardLogic();} });
         function updateKeyboardLogic() {
             let x=0,y=0; if(keys.w)y=100; if(keys.s)y=-100; if(keys.a)x=-100; if(keys.d)x=100;
             if(y!==0&&x!==0)x*=0.5; 
@@ -2983,14 +2984,14 @@ function ensureLogExportButton(){
 
 })();
 </script>
-  <!-- three.js + sim скрипти відключені (сумо онлайн не використовується)
+  <!-- three.js потрібний для 3D оверлею симулятора -->
   <script src="https://unpkg.com/three@0.155.0/build/three.min.js"></script>
   <script src="https://unpkg.com/three@0.155.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://unpkg.com/three@0.155.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="rc_sim2d_3d_overlay.js"></script>
-  <script src="rc_sim2d_online.js"></script>
+  <!-- rc_sim2d_online.js відключено (онлайн сумо не потрібне) -->
+  <!-- <script src="rc_sim2d_online.js"></script> -->
   <script src="rc_sim2d_core.js"></script>
-  -->
 
 <script>
 /* Ctrl+U = Upload to robot */
@@ -3037,7 +3038,7 @@ document.addEventListener('keydown', function(e) {
                 <div class="auth-logo-wrap w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
                     <i class="fa-solid fa-robot text-2xl text-white"></i>
                 </div>
-                <h2 class="text-white text-2xl font-bold tracking-tight">RoboBlock</h2>
+                <h2 class="text-white text-2xl font-bold tracking-tight">RoboScratch</h2>
                 <p class="text-slate-400 text-sm mt-1.5" id="authSubtitle">Увійдіть або зареєструйтеся</p>
             </div>
 
