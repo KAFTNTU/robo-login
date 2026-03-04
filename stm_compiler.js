@@ -1,6 +1,6 @@
 /* ================================================================
    stm_compiler.js
-   Компілятор Blockly → байткод для program_runner STM32
+   Компілятор Blockly → байткод для program_runer STM32
 
    Підключити в index.html після blocks_car_fixed3.js:
      <script src="stm_compiler.js"></script>
