@@ -35,6 +35,7 @@ const PCMD = {
     BEGIN: 0xA0, END: 0xA1,
     RUN:   0xA2, STOP: 0xA3,
     CLEAR: 0xA4, CHUNK: 0xB0,
+    SAVE:  0xA5,  /* зберегти в FRAM автоматично */
 };
 
 /* ================================================================
@@ -534,6 +535,11 @@ window.uploadToRobot = async function () {
 
         await sendPkt([PCMD.END]);
         _log('  → CMD_END надіслано', 'tx');
+        await new Promise(r => setTimeout(r, 60));
+
+        /* --- Авто-збереження в FRAM --- */
+        await sendPkt([PCMD.SAVE]);
+        _log('  → CMD_SAVE: збережено в FRAM', 'tx');
         await new Promise(r => setTimeout(r, 60));
 
         /* --- Успіх --- */
